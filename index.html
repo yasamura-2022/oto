@@ -89,10 +89,14 @@
       top: 100px; 
       width: 100%;
       text-align: center;
-      /* CSSキャッシュ対策のため、インラインスタイルを優先 */
+      
+      /* ★修正: CSSで文字を大きく・可愛く（キャッシュの影響を受ける可能性あり） */
+      font-size: 40px; 
+      color: #FF69B4; 
+      text-shadow: 2px 2px 0 rgba(255,255,255,0.7);
+      
       font-weight: bold;
       pointer-events: none;
-      text-shadow: 1px 1px 0 rgba(255,255,255,0.5);
       z-index: 10;
       font-family: "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
     }
@@ -116,8 +120,7 @@
 </head>
 <body>
     
-  <!-- ★修正: インラインスタイルで文字の大きさとかわいさを強制適用 -->
-  <div id="guideText" style="font-size: 40px; color: #FF69B4; text-shadow: 2px 2px 0 rgba(255,255,255,0.7);">ボタンを押してスタート！</div>
+  <div id="guideText">ボタンを押してスタート！</div>
   <div id="volDisplay">Vol (音の大きさ): 0.00</div>
   
   <!-- スタートボタン -->  
@@ -132,8 +135,8 @@
     let isMicReady = false; 
 
     // コップとモール関連
-    const SENSITIVITY = 10000; // 超高感度設定
-    const THRESHOLD = 0.0;  // しきい値を完全に削除
+    const SENSITIVITY = 10000; // 超高感度設定（モール完璧版の値を維持）
+    const THRESHOLD = 0.0;  // しきい値を完全に削除（モール完璧版の値を維持）
     const cupHeight = 160;
     const topRadius = 60; 
     const bottomRadius = 90; 
