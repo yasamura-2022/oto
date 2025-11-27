@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>音の実験</title>
+  
+  <!-- p5.jsライブラリを安定版(v1.4.0)かつ広範囲なCDNに変更 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/addons/p5.sound.min.js"></script>
+  <style>
+    /* 全体の設定 */
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden; /* スクロール禁止 */
+      background-color: #FF4500; /* 鮮やかなオレンジ (読み込み確認用) */
+      font-family: "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+      user-select: none; /* 文字選択禁止 */
+      -webkit-user-select: none;
+      touch-action: none; /* 画面のズームなどを禁止 */
+    }
+
+    /* 描画エリア（キャンバス） */
+    canvas {
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 0; 
+      pointer-events: none; /* タッチを通過させる */
+    }
+    
+    /* スタートボタン */
+    #startBtn {
+      position: absolute;
+      top: 50%; 
+      left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 25px 60px; 
+      font-size: 22px;
+      font-weight: bold;
+      background-color: #2196F3; 
+      color: white;
+      border: none;
+      border-radius: 50px;
+      border-bottom: 6px solid #1565C0;
+      cursor: pointer;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+      z-index: 100; 
+      white-space: nowrap;
+      transition: transform 0.1s, border-bottom 0.1s;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    #startBtn:active {
+      transform: translate(-50%, -46%);
+      border-bottom: 2px solid #1565C0;
+    }
+    
+    /* 停止ボタン */
+    #stopBtn {
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 15px 40px;
+      font-size: 18px;
+      font-weight: bold;
+      background-color: #F44336; 
+      color: white;
+      border: none;
+      border-radius: 30px;
+      border-bottom: 4px solid #D32F2F;
+      cursor: pointer;
+      display: none; 
+      box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+      z-index: 100;
+      -webkit-appearance: none;
+    }
+    #stopBtn:active {
+      transform: translateX(-50%) translateY(4px);
+      border-bottom: none;
+      margin-bottom: 4px;
+    }
+
+    /* ガイドテキスト */
+    #guideText {
+      position: absolute;
+      top: 100px; 
+      width: 100%;
+      text-align: center;
+      font-size: 20px;
+      color: #333;
+      font-weight: bold;
+      pointer-events: none;
+      text-shadow: 1px 1px 0 rgba(255,255,255,0.5);
+      z-index: 10;
+    }
+
+    /* 音量数値表示（デバッグ用） */
+    #volDisplay {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(0, 0, 0, 0.6);
+      color: #0f0;
+      padding: 5px 10px;
+      border-radius: 5px;
+      font-family: monospace;
+      font-size: 14px;
+      pointer-events: none;
+      display: none; /* スタート後に表示 */
+      white-space: nowrap; /* テキストが折り返さないように */
+    }
+    
+    /* エラーオーバーレイ */
+    #errorOverlay {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-color: rgba(255, 0, 0, 0.95); /* 半透明の赤 */
+        color: white;
+        padding: 20px;
+        font-size: 16px;
+        z-index: 9999;
+        display: none; /* 初期は非表示 */
+        white-space: pre-wrap;
+        text-align: left;
+        font-family: monospace;
+    }
+    #errorOverlay h2 {
+        font-size: 24px;
+        margin-top: 0;
+        border-bottom: 2px solid white;
+        padding-bottom: 10px;
+    }
+    
+  </style>
+</head>
+<body>
+    <!-- デバッグテキスト（JSに依存しない）：この文字が表示されればOK -->
+    <p style="position:fixed; top:5px; left:50%; transform:translateX(-50%); color:white; font-weight:bold; z-index:9999; background: #333; padding: 2px 8px; border-radius: 4px;">LOAD TEST: NEW FILE ARRIVED</p>
+    
+  <div id="guideText">ボタンを押してスタート！</div>
+  <div id="volDisplay">Vol (音の大きさ): 0.00</div>
+  
+  <!-- スタートボタン -->  
+  <button id="startBtn" ontouchstart="startApp(event)" onclick="startApp(event)">▶ スタート</button>
+
+  <button id="stopBtn" ontouchstart="stopApp(event)" onclick="stopApp(event)">⏹ やめる</button>
+  
+  <!-- エラー表示エリア -->
+  <div id="errorOverlay">
+      <h2>アプリ実行エラー (Fatal Error)</h2>
+      <p>アプリの初期化中に致命的な問題が発生しました。ブラウザのバージョンや設定を確認してください。</p>
+      <p id="errorMessage"></p>
+  </div>
+  
+  <script>
+    // JSエラーハンドラは残す
+
+    let mic;
+    let isStarted = false; 
+    let isMicReady = false; 
+
+    // コップとモール関連
+    const SENSITIVITY = 3000; // 感度
+    const THRESHOLD = 0.01;  // ノイズしきい値
+    const cupHeight = 160;
+    const topRadius = 60; 
+    const bottomRadius = 90; 
+    
+    let isProcessing = false;
+
+    // グローバルエラーハンドラ
+    window.onerror = function(message, source, lineno, colno, error) {
+        const overlay = document.getElementById('errorOverlay');
+        const msg = document.getElementById('errorMessage');
+        
+        if (overlay) {
+            msg.innerText = `エラー内容:\n${message}\n\nファイル: ${source}\n行: ${lineno}\n列: ${colno}`;
+            overlay.style.display = 'block';
+        }
+        return true; 
+    };
+
+    function setup() {
+      createCanvas(windowWidth, windowHeight);
+      textAlign(CENTER, CENTER);
+    }
+
+    // --- スタート処理 ---
+    function startApp(e) {
+      if (e && e.cancelable && e.type === 'touchstart') e.preventDefault();
+      
+      if (isProcessing || isStarted) return;
+      isProcessing = true;
+
+      const btn = document.getElementById('startBtn');
+      const guide = document.getElementById('guideText');
+
+      // マイクモードに固定
+      btn.innerText = "マイク起動中...";
+      guide.innerText = "マイクを許可してください...";
+      
+      // マイクが既に存在する場合、停止してクリアする
+      if (mic) {
+          try { mic.stop(); } catch(e) {}
+          mic = null;
+      }
+      
+      // マイクインスタンスの作成
+      try {
+        mic = new p5.AudioIn();
+      } catch(err) {
+        console.error("Mic init error:", err);
+          guide.innerText = "エラー：マイク機能が初期化できませんでした。\nブラウザ設定（マイクの許可）を確認し、再試行してください。";
+        resetApp();
+        return;
+      }
+
+      // ユーザー操作（タップ）を受けて、オーディオコンテキストを起動
+      userStartAudio().then(() => {
+          // AudioContextが確実にrunning状態か確認し、明示的にresume
+          const audioContext = getAudioContext();
+          if (audioContext.state !== 'running') {
+              audioContext.resume();
+          }
+
+          // userStartAudio()の成功後、マイクのストリームを開始
+        mic.start(() => {
+          console.log("Mic started");
+          isStarted = true;
+          isMicReady = true;
+          finalizeStart();
+
+        }, (err) => {
+          console.error("マイクが使えません。ブラウザの設定でマイクを「許可」してください。", err);
+          guide.innerText = "マイクが使えません。\nブラウザの設定でマイクを「許可」しているか確認してください。";
+          resetApp();
+        });
+
+      }).catch(err => {
+        console.error("オーディオ起動エラー:", err);
+        guide.innerText = "エラーが発生しました。\nページを再読み込みするか、ブラウザ設定を確認してください。";
+        resetApp();
+      });
+    }
+
+    function finalizeStart() {
+        const btn = document.getElementById('startBtn');
+        const guide = document.getElementById('guideText');
+
+        btn.style.display = 'none';
+        guide.style.display = 'block';
+        document.getElementById('stopBtn').style.display = "block";
+        
+        // Vol表示を常に表示
+        document.getElementById('volDisplay').style.display = "block"; 
+        
+        isProcessing = false;
+    }
+
+    // --- 停止処理 ---
+    function stopApp(e) {
+      if (e && e.cancelable) e.preventDefault();
+      resetApp();
+    }
+
+    function resetApp() {
+      isStarted = false;
+      isMicReady = false;
+      isProcessing = false;
+
+      if (mic) {
+        try { mic.stop(); } catch(e) {}
+        mic = null; 
+      }
+
+      const btn = document.getElementById('startBtn');
+      const guide = document.getElementById('guideText');
+      
+      btn.style.display = 'block';
+      btn.innerText = "▶ スタート";
+      btn.style.backgroundColor = "#2196F3"; 
+      btn.style.color = "white";
+      
+      guide.style.display = 'block';
+      guide.innerText = "ボタンを押してスタート！"; // メッセージをシンプルに戻す
+      guide.style.top = '100px'; 
+      
+      document.getElementById('stopBtn').style.display = "none";
+      document.getElementById('volDisplay').style.display = "none";
+    }
+
+    // --- 描画ループ ---
+    function draw() {
+      background(240); 
+      noStroke();
+      
+      fill(210, 180, 140); 
+      rect(0, height/2 + 80, width, height); // 机の描画
+
+      // スタート前
+      if (!isStarted || !isMicReady) {
+            // 静止状態のコップとモールを表示
+            drawCup(0, 0); 
+            drawMall(0, 0);
+        return;
+      }
+
+      // --- 振動の計算（マイク） ---
+      let vol = 0;
+      let rawVol = 0;
+      
+      if (mic) {
+        rawVol = mic.getLevel();
+          
+          // 生の音量そのままをモールに反映
+          vol = rawVol; 
+
+        // 数値表示更新 (Vol表示は生の音量で更新)
+        document.getElementById('volDisplay').innerText = "Vol (音の大きさ): " + rawVol.toFixed(3); 
+      } else {
+          document.getElementById('volDisplay').innerText = "Vol (音の大きさ): ---";
+      }
+
+
+      if (vol < THRESHOLD) {
+        vol = 0;
+      } else {
+        vol = (vol - THRESHOLD) * (1 / (1 - THRESHOLD));
+      }
+
+      let shakeAmount = vol * SENSITIVITY; 
+
+      // マイクモードの描画
+      drawCup(0, shakeAmount); 
+      drawMall(shakeAmount); 
+
+      // ガイドテキスト
+      let instructionText = "";
+      if (shakeAmount > 5) { 
+          instructionText = "マイクが震えているよ！声の大きさを比べよう！";
+      } else {
+          instructionText = "コップに向かって声を出してみよう";
+      }
+
+      // ガイドテキストの更新
+      document.getElementById('guideText').innerText = instructionText;
+      
+    }
+
+    // コップの描画（変更なし）
+    function drawCup(cupYOffset, shake) {
+      push();
+      translate(width / 2, height / 2 + 30); 
+
+      let topY = -cupHeight/2 + cupYOffset; 
+      let bottomY = cupHeight/2; 
+
+      // 側面
+      fill(230); noStroke();
+      beginShape();
+      vertex(-topRadius, topY); vertex(topRadius, topY);
+      vertex(bottomRadius, bottomY); vertex(-bottomRadius, bottomY);
+      endShape(CLOSE);
+
+      // 底面の影
+      fill(240); stroke(180); strokeWeight(1);
+      ellipse(0, bottomY, bottomRadius * 2, bottomRadius * 0.6);
+
+      // 側線の強調
+      noStroke(); fill(255);
+      stroke(180); strokeWeight(2);
+      line(-topRadius, topY, -bottomRadius, bottomY);
+      line(topRadius, topY, bottomRadius, bottomY);
+
+      // 上部の蓋
+      fill(255); stroke(180); strokeWeight(1);
+      ellipse(0, topY, topRadius * 2, topRadius * 0.6);
+      
+      // 振動のエフェクト（赤い波線）
+      if (shake > 5) { 
+          noFill(); stroke(255, 0, 0, 100); strokeWeight(3);
+          let waveSize = random(5);
+          ellipse(0, topY, topRadius * 2 + waveSize, topRadius * 0.6 + waveSize/2);
+      }
+      pop();
+    }
+
+    // モールの描画（変更なし）
+    function drawMall(shakeAmount) {
+      push();
+      translate(width / 2, height / 2 + 30);
+
+      const staticCupTopY = -cupHeight/2; 
+      
+      let verticalShake = 0;
+      if (shakeAmount > 0) {
+        verticalShake = random(-1, 1) * map(shakeAmount, 0, SENSITIVITY * 0.5, 0, 25, true);
+      }
+
+      let displayMallY = staticCupTopY + verticalShake;
+
+      stroke(50, 200, 50); strokeWeight(12); strokeCap(ROUND); noFill();
+      
+      let bend = (shakeAmount > 0) ? random(-1, 1) * map(shakeAmount, 0, SENSITIVITY * 0.5, 0, 25, true) : 0; 
+      
+      beginShape();
+      vertex(-35 - bend * 0.5, displayMallY - 15 + bend * 0.2); 
+      vertex(0, displayMallY + 5); 
+      vertex(35 + bend * 0.5, displayMallY - 15 - bend * 0.2); 
+      endShape();
+      
+      pop();
+    }
+    
+    function mousePressed() {
+      // 既存の startApp/stopApp に影響がないよう、p5.jsのデフォルトの動作を維持するため空の関数を設置
+    }
+
+    function touchStarted() {
+      // 既存の startApp/stopApp に影響がないよう、p5.jsのデフォルトの動作を維持するため空の関数を設置
+    }
+
+    function windowResized() {
+      resizeCanvas(windowWidth, windowHeight);
+    }
+  </script>
+</body>
+</html>
