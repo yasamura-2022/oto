@@ -162,8 +162,8 @@
     let isMicReady = false; 
 
     // コップとモール関連
-    const SENSITIVITY = 10000; // ★超高感度設定 (6000 -> 10000)
-    const THRESHOLD = 0.0;  // ★しきい値を完全に削除 (0.005 -> 0.0)
+    const SENSITIVITY = 10000; // 超高感度設定
+    const THRESHOLD = 0.0;  // しきい値を完全に削除
     const cupHeight = 160;
     const topRadius = 60; 
     const bottomRadius = 90; 
@@ -323,11 +323,11 @@
           document.getElementById('volDisplay').innerText = "Vol (音の大きさ): ---";
       }
 
-      // ★修正: THRESHOLDが0なので、常にvol = rawVol * 1 となる
-      if (vol < THRESHOLD) {
+      // ★修正: ノイズカットのロジックを完全に削除
+      if (vol < THRESHOLD) { // THRESHOLDが0なので、常にfalse
         vol = 0;
       } else {
-        vol = (vol - THRESHOLD) * (1 / (1 - THRESHOLD));
+        vol = rawVol; // 生の音量そのままを使用
       }
 
       let shakeAmount = vol * SENSITIVITY; 
