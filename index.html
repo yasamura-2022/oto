@@ -90,10 +90,10 @@
       width: 100%;
       text-align: center;
       
-      /* ★修正: CSSで文字を大きく・可愛く（キャッシュの影響を受ける可能性あり） */
-      font-size: 40px; 
-      color: #FF69B4; 
-      text-shadow: 2px 2px 0 rgba(255,255,255,0.7);
+      /* ★修正: 文字のサイズと色を元に戻す */
+      font-size: 20px; 
+      color: #333; 
+      text-shadow: 1px 1px 0 rgba(255,255,255,0.5);
       
       font-weight: bold;
       pointer-events: none;
@@ -135,8 +135,8 @@
     let isMicReady = false; 
 
     // コップとモール関連
-    const SENSITIVITY = 10000; // 超高感度設定（モール完璧版の値を維持）
-    const THRESHOLD = 0.0;  // しきい値を完全に削除（モール完璧版の値を維持）
+    const SENSITIVITY = 10000; // 超高感度設定（モールの完璧な揺れを維持）
+    const THRESHOLD = 0.0;  // しきい値を完全に削除（モールの完璧な揺れを維持）
     const cupHeight = 160;
     const topRadius = 60; 
     const bottomRadius = 90; 
