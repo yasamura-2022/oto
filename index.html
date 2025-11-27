@@ -14,7 +14,7 @@
       margin: 0;
       padding: 0;
       overflow: hidden; /* スクロール禁止 */
-      background-color: #FF4500; /* 鮮やかなオレンジ (読み込み確認用) */
+      background-color: #888; /* 背景色を標準に戻す */
       font-family: "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
       user-select: none; /* 文字選択禁止 */
       -webkit-user-select: none;
@@ -138,8 +138,6 @@
   </style>
 </head>
 <body>
-    <!-- デバッグテキスト（JSに依存しない）：この文字が表示されればOK -->
-    <p style="position:fixed; top:5px; left:50%; transform:translateX(-50%); color:white; font-weight:bold; z-index:9999; background: #333; padding: 2px 8px; border-radius: 4px;">LOAD TEST: NEW FILE ARRIVED</p>
     
   <div id="guideText">ボタンを押してスタート！</div>
   <div id="volDisplay">Vol (音の大きさ): 0.00</div>
@@ -164,8 +162,8 @@
     let isMicReady = false; 
 
     // コップとモール関連
-    const SENSITIVITY = 6000; // ★修正: 感度を大幅に向上 (3000 -> 6000)
-    const THRESHOLD = 0.005;  // ★修正: しきい値を最小化 (0.01 -> 0.005)
+    const SENSITIVITY = 10000; // ★超高感度設定 (6000 -> 10000)
+    const THRESHOLD = 0.0;  // ★しきい値を完全に削除 (0.005 -> 0.0)
     const cupHeight = 160;
     const topRadius = 60; 
     const bottomRadius = 90; 
@@ -325,7 +323,7 @@
           document.getElementById('volDisplay').innerText = "Vol (音の大きさ): ---";
       }
 
-
+      // ★修正: THRESHOLDが0なので、常にvol = rawVol * 1 となる
       if (vol < THRESHOLD) {
         vol = 0;
       } else {
