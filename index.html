@@ -164,8 +164,8 @@
     let isMicReady = false; 
 
     // コップとモール関連
-    const SENSITIVITY = 3000; // 感度
-    const THRESHOLD = 0.01;  // ノイズしきい値
+    const SENSITIVITY = 6000; // ★修正: 感度を大幅に向上 (3000 -> 6000)
+    const THRESHOLD = 0.005;  // ★修正: しきい値を最小化 (0.01 -> 0.005)
     const cupHeight = 160;
     const topRadius = 60; 
     const bottomRadius = 90; 
