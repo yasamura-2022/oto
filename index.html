@@ -89,13 +89,13 @@
       top: 100px; 
       width: 100%;
       text-align: center;
-      font-size: 40px; /* ★修正: 文字を非常に大きく */
-      color: #32CD32; /* ★修正: 文字色を目立つ緑に */
+      font-size: 40px !important; /* ★修正: 強制的に大きく */
+      color: #FF69B4 !important; /* ★修正: 強制的にショッキングピンクに */
       font-weight: bold;
       pointer-events: none;
       text-shadow: 1px 1px 0 rgba(255,255,255,0.5);
       z-index: 10;
-      font-family: "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif; /* ★修正: 安定したフォントに統一 */
+      font-family: "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif; /* 安定したフォントに統一 */
     }
 
     /* 音量数値表示（デバッグ用） */
@@ -395,14 +395,14 @@
       
       let verticalShake = 0;
       if (shakeAmount > 0) {
-        verticalShake = random(-1, 1) * map(shakeAmount, 0, SENSITIVITY * 0.5, 0, 100, true); // ★修正: 最大揺れ幅を100に
+        verticalShake = random(-1, 1) * map(shakeAmount, 0, SENSITIVITY * 0.5, 0, 100, true); 
       }
 
       let displayMallY = staticCupTopY + verticalShake;
 
       stroke(50, 200, 50); strokeWeight(12); strokeCap(ROUND); noFill();
       
-      let bend = (shakeAmount > 0) ? random(-1, 1) * map(shakeAmount, 0, SENSITIVITY * 0.5, 0, 100, true) : 0; // ★修正: 最大曲がり幅を100に
+      let bend = (shakeAmount > 0) ? random(-1, 1) * map(shakeAmount, 0, SENSITIVITY * 0.5, 0, 100, true) : 0; 
       
       beginShape();
       vertex(-35 - bend * 0.5, displayMallY - 15 + bend * 0.2); 
