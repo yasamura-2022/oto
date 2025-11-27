@@ -323,8 +323,8 @@
           document.getElementById('volDisplay').innerText = "Vol (音の大きさ): ---";
       }
 
-      // ★修正: ノイズカットのロジックを完全に削除
-      if (vol < THRESHOLD) { // THRESHOLDが0なので、常にfalse
+      // ノイズカットロジックを完全に排除
+      if (vol < THRESHOLD) { 
         vol = 0;
       } else {
         vol = rawVol; // 生の音量そのままを使用
@@ -387,7 +387,7 @@
       pop();
     }
 
-    // モールの描画（変更なし）
+    // モールの描画
     function drawMall(shakeAmount) {
       push();
       translate(width / 2, height / 2 + 30);
@@ -396,14 +396,14 @@
       
       let verticalShake = 0;
       if (shakeAmount > 0) {
-        verticalShake = random(-1, 1) * map(shakeAmount, 0, SENSITIVITY * 0.5, 0, 25, true);
+        verticalShake = random(-1, 1) * map(shakeAmount, 0, SENSITIVITY * 0.5, 0, 50, true); // ★修正: 最大揺れ幅を50に
       }
 
       let displayMallY = staticCupTopY + verticalShake;
 
       stroke(50, 200, 50); strokeWeight(12); strokeCap(ROUND); noFill();
       
-      let bend = (shakeAmount > 0) ? random(-1, 1) * map(shakeAmount, 0, SENSITIVITY * 0.5, 0, 25, true) : 0; 
+      let bend = (shakeAmount > 0) ? random(-1, 1) * map(shakeAmount, 0, SENSITIVITY * 0.5, 0, 50, true) : 0; // ★修正: 最大曲がり幅を50に
       
       beginShape();
       vertex(-35 - bend * 0.5, displayMallY - 15 + bend * 0.2); 
