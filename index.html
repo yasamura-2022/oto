@@ -89,13 +89,12 @@
       top: 100px; 
       width: 100%;
       text-align: center;
-      font-size: 40px !important; /* ★修正: 強制的に大きく */
-      color: #FF69B4 !important; /* ★修正: 強制的にショッキングピンクに */
+      /* CSSキャッシュ対策のため、インラインスタイルを優先 */
       font-weight: bold;
       pointer-events: none;
       text-shadow: 1px 1px 0 rgba(255,255,255,0.5);
       z-index: 10;
-      font-family: "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif; /* 安定したフォントに統一 */
+      font-family: "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
     }
 
     /* 音量数値表示（デバッグ用） */
@@ -113,33 +112,12 @@
       display: none; /* スタート後に表示 */
       white-space: nowrap; /* テキストが折り返さないように */
     }
-    
-    /* エラーオーバーレイ */
-    #errorOverlay {
-        position: fixed;
-        top: 0; left: 0; right: 0; bottom: 0;
-        background-color: rgba(255, 0, 0, 0.95); /* 半透明の赤 */
-        color: white;
-        padding: 20px;
-        font-size: 16px;
-        z-index: 9999;
-        display: none; /* 初期は非表示 */
-        white-space: pre-wrap;
-        text-align: left;
-        font-family: monospace;
-    }
-    #errorOverlay h2 {
-        font-size: 24px;
-        margin-top: 0;
-        border-bottom: 2px solid white;
-        padding-bottom: 10px;
-    }
-    
   </style>
 </head>
 <body>
     
-  <div id="guideText">ボタンを押してスタート！</div>
+  <!-- ★修正: インラインスタイルで文字の大きさとかわいさを強制適用 -->
+  <div id="guideText" style="font-size: 40px; color: #FF69B4; text-shadow: 2px 2px 0 rgba(255,255,255,0.7);">ボタンを押してスタート！</div>
   <div id="volDisplay">Vol (音の大きさ): 0.00</div>
   
   <!-- スタートボタン -->  
@@ -147,15 +125,8 @@
 
   <button id="stopBtn" ontouchstart="stopApp(event)" onclick="stopApp(event)">⏹ やめる</button>
   
-  <!-- エラー表示エリア --><div id="errorOverlay">
-      <h2>アプリ実行エラー (Fatal Error)</h2>
-      <p>アプリの初期化中に致命的な問題が発生しました。ブラウザのバージョンや設定を確認してください。</p>
-      <p id="errorMessage"></p>
-  </div>
   
   <script>
-    // JSエラーハンドラは残す
-
     let mic;
     let isStarted = false; 
     let isMicReady = false; 
@@ -168,18 +139,6 @@
     const bottomRadius = 90; 
     
     let isProcessing = false;
-
-    // グローバルエラーハンドラ
-    window.onerror = function(message, source, lineno, colno, error) {
-        const overlay = document.getElementById('errorOverlay');
-        const msg = document.getElementById('errorMessage');
-        
-        if (overlay) {
-            msg.innerText = `エラー内容:\n${message}\n\nファイル: ${source}\n行: ${lineno}\n列: ${colno}`;
-            overlay.style.display = 'block';
-        }
-        return true; 
-    };
 
     function setup() {
       createCanvas(windowWidth, windowHeight);
